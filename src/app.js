@@ -31,8 +31,14 @@ app.get("/admin/getAllData", (req, res) => {
   res.send("All data sent");
 });
 
-app.get("/userdata", userAuth, (req, res) => {
-  res.send("Sent all user data");
+app.get("/getUserData", userAuth, (req, res) => {
+  //logic to DB call and get the user data
+  try {
+    throw new Error("Code is breaked");
+  } catch (err) {
+    res.status(500).send("Unable to get the data due to some network issue");
+  }
+  //res.send("Sent all user data");
 });
 
 //This will only handle Get method to /user
@@ -70,4 +76,8 @@ app.post("/person", (req, res) => {
 app.use("/test", (req, res) => {
   res.send("Hello from the server!!");
 }); //Request handler
+
+app.use("/", (err, req, res, next) => {
+  if (err) res.status(500).send("Something went wrong!");
+});
 app.listen(3000, () => console.log("Listening on port 3000")); //Server is running on port 3000
