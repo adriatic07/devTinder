@@ -14,11 +14,12 @@ app.post("/signup", async (req, res) => {
     await user.save();
     res.send("User successfully added!");
   } catch (err) {
-    res.status(400).send("Error svaing the user : " + err.messgae);
+    res.status(400).send("Error saving the user : " + err.message);
   }
 });
 
-app.get("/getUser", async (req, res) => {
+//Get user by email
+app.get("/user", async (req, res) => {
   try {
     const users = await User.find({ emailId: req.body.emailId });
     if (users.length === 0) {
@@ -63,11 +64,12 @@ app.patch("/user", async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(userId, data, {
       returnDocument: "before",
+      runValidators: true,
     });
     //console.log(user);
     res.send("User successfully updated!");
   } catch (err) {
-    res.status(400).send("Something went wrong");
+    res.status(400).send("Update failed " + err.message);
   }
 });
 
