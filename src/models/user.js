@@ -1,12 +1,13 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+const validator = require("validator");
 
 const userSchema = new Schema(
   {
     firstName: {
       type: String,
       required: true,
-      minLength: 4,
+      minLength: 3,
       maxLength: 100,
     },
     lastName: {
@@ -36,18 +37,33 @@ const userSchema = new Schema(
       trim: true,
       lowercase: true,
       maxLength: 100,
-      match: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+      //match: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+      validate(value) {
+        if (!validator.isEmail(value)) {
+          throw new Error("Invalid email id!");
+        }
+      },
     },
     password: {
       type: String,
       required: true,
       minLength: 6,
       maxLength: 20,
+      validate(value) {
+        if (!validator.isStrongPassword(value)) {
+          throw new Error("Not a strong passowrd!");
+        }
+      },
     },
     photoURL: {
       type: String,
       default:
         "https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg",
+      validate(value) {
+        if (!validator.isURL(value)) {
+          throw new Error("Invalid photo url!");
+        }
+      },
     },
     about: {
       type: String,

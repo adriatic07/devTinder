@@ -8,9 +8,31 @@ app.use(express.json());
 app.post("/signup", async (req, res) => {
   //console.log(req.body);
   //Creating a new instance of the user Model.
+  const data = req.body;
   const user = new User(req.body);
+  //console.log(user);
 
   try {
+    const ALLOWED_DATA = [
+      "firstName",
+      "lastName",
+      "age",
+      "gender",
+      "emailId",
+      "password",
+      "photoURL",
+      "about",
+      "skills",
+    ];
+    const isUpdateAllowed = Object.keys(data).every((k) =>
+      ALLOWED_DATA.includes(k)
+    );
+    if (!isUpdateAllowed) {
+      throw new Error("Please enter correct details");
+    }
+    if (data?.skills.length > 10) {
+      throw new Error("Upto 10 skills are allowed!");
+    }
     await user.save();
     res.send("User successfully added!");
   } catch (err) {
@@ -58,10 +80,28 @@ app.delete("/user", async (req, res) => {
 });
 
 //Update an user by an id
-app.patch("/user", async (req, res) => {
-  const userId = req.body.userId;
+app.patch("/user/:userId", async (req, res) => {
+  const userId = req.params?.userId;
   const data = req.body;
   try {
+    const ALLOWED_DATA = [
+      "firstName",
+      "lastName",
+      "gender",
+      "password",
+      "photoURL",
+      "about",
+      "skills",
+    ];
+    const isUpdateAllowed = Object.keys(data).every((k) =>
+      ALLOWED_DATA.includes(k)
+    );
+    if (!isUpdateAllowed) {
+      throw new Error("Update not allowed");
+    }
+    if (data?.skills.length > 10) {
+      throw new Error("Upto 10 skills are allowed!");
+    }
     const user = await User.findByIdAndUpdate(userId, data, {
       returnDocument: "before",
       runValidators: true,
@@ -69,7 +109,7 @@ app.patch("/user", async (req, res) => {
     //console.log(user);
     res.send("User successfully updated!");
   } catch (err) {
-    res.status(400).send("Update failed " + err.message);
+    res.status(400).send("Update failed - " + err.message);
   }
 });
 
