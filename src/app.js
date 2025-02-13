@@ -1,42 +1,71 @@
 const express = require("express");
 const { connectDb } = require("./config/Database");
+const { validateUserData } = require("./utils/validation");
+const validator = require("validator");
+const bcrypt = require("bcrypt");
 const User = require("./models/user");
 const app = express();
 
 app.use(express.json());
 
 app.post("/signup", async (req, res) => {
-  //console.log(req.body);
-  //Creating a new instance of the user Model.
-  const data = req.body;
-  const user = new User(req.body);
-  //console.log(user);
-
   try {
-    const ALLOWED_DATA = [
-      "firstName",
-      "lastName",
-      "age",
-      "gender",
-      "emailId",
-      "password",
-      "photoURL",
-      "about",
-      "skills",
-    ];
-    const isUpdateAllowed = Object.keys(data).every((k) =>
-      ALLOWED_DATA.includes(k)
-    );
-    if (!isUpdateAllowed) {
-      throw new Error("Please enter correct details");
-    }
-    if (data?.skills.length > 10) {
-      throw new Error("Upto 10 skills are allowed!");
-    }
+    const {
+      firstName,
+      lastName,
+      age,
+      gender,
+      emailId,
+      password,
+      about,
+      photoURL,
+      skills,
+    } = req.body;
+    //Validation of data
+    validateUserData(req);
+
+    //Encrypting the password
+    const hashedPassowrd = await bcrypt.hash(password, 10); //10 refers to saltrounds(layering to password)
+
+    //Creating a new instance of the user Model.
+    const user = new User({
+      firstName,
+      lastName,
+      age,
+      gender,
+      emailId,
+      password: hashedPassowrd,
+      about,
+      photoURL,
+      skills,
+    });
+
     await user.save();
     res.send("User successfully added!");
   } catch (err) {
-    res.status(400).send("Error saving the user : " + err.message);
+    res.status(400).send("ERROR: " + err.message);
+  }
+});
+
+app.post("/login", async (req, res) => {
+  try {
+    const { emailId, password } = req.body;
+    //email validation logic
+    if (!validator.isEmail(emailId)) {
+      throw new Error("Invalid email!");
+    }
+    const user = await User.findOne({ emailId: emailId });
+    if (!user) {
+      throw new Error("Invalid credentails");
+    }
+    const isValidUser = await bcrypt.compare(password, user.password);
+    if (isValidUser) {
+      res.send("Login successful");
+    } else {
+      throw new Error("Invalid credentails");
+    }
+  } catch (err) {
+    res.status(400).send("ERROR: " + err.message);
   }
 });
 
