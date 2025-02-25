@@ -31,6 +31,25 @@ const validateUserData = (req) => {
   }
 };
 
+const validateUserProfileData = (req) => {
+  const ALLOWED_DATA = [
+    "firstName",
+    "lastName",
+    "gender",
+    "age",
+    "photoURL",
+    "about",
+    "skills",
+  ];
+
+  const isAllowed = Object.keys(req.body).every((k) =>
+    ALLOWED_DATA.includes(k)
+  );
+
+  return isAllowed;
+};
+
 module.exports = {
   validateUserData,
+  validateUserProfileData,
 };
